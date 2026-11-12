@@ -264,3 +264,18 @@ html { scroll-padding-top: 84px; }
   h2 { font-size: 1.4375rem; }
   .hero .home-title { font-size: 2rem; }
 }
+
+.cms-layout { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 24px; }
+.cms-sidebar { align-self: start; padding: 16px; background: var(--color-panel); border: 1px solid var(--color-line); border-radius: 10px; }
+.cms-sidebar nav { display: grid; gap: 4px; margin-top: 12px; }
+.cms-sidebar a { padding: 8px; border-radius: 6px; color: var(--color-muted); }
+.cms-sidebar a:hover, .cms-sidebar a[aria-current] { background: var(--color-canvas); color: var(--color-brand); }
+.cms-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; overflow-wrap: anywhere; }
+.cms-editors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 20px; align-items: start; }
+.cms-editor, .cms-preview { min-width: 0; width: 100%; overflow-wrap: anywhere; }
+.cms-preview { padding: 12px; background: var(--color-canvas); border-radius: 6px; }
+.cms-image, .cms-preview img { width: 100%; max-height: 240px; object-fit: contain; }
+@media (max-width: 900px) {
+  .cms-layout, .cms-editors { grid-template-columns: minmax(0, 1fr); }
+  .cms-sidebar nav { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+}

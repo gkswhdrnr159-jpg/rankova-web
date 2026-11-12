@@ -1,9 +1,4 @@
-type PriceTable = {
-  id: string;
-  label: string;
-  perMatch?: boolean;
-  rows: readonly (readonly [rank: string, price: number | null])[];
-};
+import type { PriceTable } from "./price-tabs";
 
 export const valorantPrices: readonly PriceTable[] = [
   {
@@ -84,4 +79,3 @@ export const valorantPrices: readonly PriceTable[] = [
     ],
   },
 ];
-

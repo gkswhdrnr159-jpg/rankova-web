@@ -2,15 +2,25 @@
 
 import { useRef, useState, type KeyboardEvent } from "react";
 import { money } from "../../commerce";
-import { valorantPrices } from "./valorant-prices";
+export type PriceTable = {
+  id: string;
+  label: string;
+  basis?: string;
+  perMatch?: boolean;
+  rows: readonly (readonly [rank: string, price: number | null])[];
+};
 
-export function ValorantPriceTabs() {
+export function PriceTabs({ tables, game, inquiryLabel }: {
+  tables: readonly PriceTable[];
+  game: string;
+  inquiryLabel: string;
+}) {
   const [selected, setSelected] = useState(0);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
-  const table = valorantPrices[selected];
+  const table = tables[selected];
 
   function moveTab(event: KeyboardEvent<HTMLButtonElement>, index: number) {
-    const last = valorantPrices.length - 1;
+    const last = tables.length - 1;
     const keys: Record<string, number | undefined> = {
       ArrowLeft: index === 0 ? last : index - 1,
       ArrowRight: index === last ? 0 : index + 1,
@@ -26,16 +36,16 @@ export function ValorantPriceTabs() {
 
   return (
     <>
-      <div role="tablist" aria-label="발로란트 서비스 유형" className="mt-6 grid grid-cols-4 gap-2 rounded-lg border border-line bg-panel p-2">
-        {valorantPrices.map(({ id, label }, index) => (
+      <div role="tablist" aria-label={`${game} 서비스 유형`} className={`mt-6 grid ${tables.length === 3 ? "grid-cols-3" : "grid-cols-4"} gap-2 rounded-lg border border-line bg-panel p-2`}>
+        {tables.map(({ id, label }, index) => (
           <button
             key={id}
             ref={(node) => { tabs.current[index] = node; }}
             type="button"
             role="tab"
-            id={`valorant-tab-${id}`}
+            id={`price-tab-${id}`}
             aria-selected={selected === index}
-            aria-controls={`valorant-panel-${id}`}
+            aria-controls={`price-panel-${id}`}
             tabIndex={selected === index ? 0 : -1}
             onClick={() => setSelected(index)}
             onKeyDown={(event) => moveTab(event, index)}
@@ -45,23 +55,24 @@ export function ValorantPriceTabs() {
           </button>
         ))}
       </div>
-      {valorantPrices.map(({ id }) => (
-        <div key={id} role="tabpanel" id={`valorant-panel-${id}`} aria-labelledby={`valorant-tab-${id}`} hidden={id !== table.id} tabIndex={0}>
+      {tables.map(({ id }) => (
+        <div key={id} role="tabpanel" id={`price-panel-${id}`} aria-labelledby={`price-tab-${id}`} hidden={id !== table.id} tabIndex={0}>
           {id === table.id && (
             <div className="mt-4 overflow-hidden rounded-lg border border-line bg-panel">
               <table aria-label={`${table.label} 가격표`} className="w-full table-fixed text-base tabular-nums">
                 <thead className="bg-canvas text-sm text-muted">
                   <tr>
                     <th scope="col" className="px-4 py-3 text-left font-semibold sm:px-7">티어</th>
-                    <th scope="col" className="px-4 py-3 text-right font-semibold sm:px-7">가격</th>
+                    <th scope="col" className="px-4 py-3 text-right font-semibold sm:px-7">{table.basis ? `가격 (${table.basis})` : "가격"}</th>
                   </tr>
                 </thead>
                 <tbody>
+                  {!table.rows.length && <tr><td colSpan={2} className="px-4 py-5 text-center text-muted">공개된 가격이 없습니다.</td></tr>}
                   {table.rows.map(([rank, price]) => (
                     <tr key={rank} className={`border-t border-line ${price === null ? "bg-brand/10" : ""}`}>
                       <th scope="row" className="px-4 py-3 text-left font-medium sm:px-7">{rank}</th>
                       <td className="px-4 py-3 text-right font-semibold text-brand sm:px-7">
-                        {price === null ? "가격 문의" : `${table.perMatch ? "판당 " : ""}${money(price)}`}
+                        {price === null ? inquiryLabel : `${table.perMatch ? "판당 " : ""}${money(price)}`}
                       </td>
                     </tr>
                   ))}
@@ -74,5 +85,3 @@ export function ValorantPriceTabs() {
     </>
   );
 }
-
-

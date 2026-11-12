@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { availableArtwork } from "../../artwork";
-import { configured, productsFor, table } from "../../database";
+import { configured, table } from "../../database";
 import { InquiryForm } from "./inquiry-form";
-import { ValorantPriceTabs } from "./valorant-price-tabs";
-import { money } from "../../commerce";
+import { PriceTabs } from "./price-tabs";
+import { valorantPrices } from "./valorant-prices";
+import { overwatchPrices } from "./overwatch-prices";
 import { games } from "../../games";
+import { publishedContent } from "../../cms";
+import { priceGroups } from "../../cms-model";
 
 type GamePageProps = { params: Promise<{ slug: string }> };
 
@@ -50,62 +51,29 @@ export default async function GamePage({ params }: GamePageProps) {
     }
   }
 
-  if (slug === "valorant") {
-    return (
-      <section className="shell service-section max-w-4xl" id="services">
-        <h1>발로란트 가격표</h1>
-        <ValorantPriceTabs />
-        <Link href="/contact" className="game-button mt-6">문의하기</Link>
-        <InquiryForm connected={connected} submitInquiry={submitInquiry} />
-      </section>
-    );
-  }
-
-  const products = await productsFor(game.slug).catch(() => null);
-  const artwork = availableArtwork(`${game.slug}-service-hero.webp`);
+  const isValorant = slug === "valorant";
+  const published = await publishedContent(game.slug);
+  const prices = published === null
+    ? (isValorant ? valorantPrices : overwatchPrices)
+    : priceGroups[game.slug].map(([id, label]) => ({
+        id, label,
+        perMatch: isValorant && id === "placement",
+        basis: isValorant ? undefined : id === "tier" ? "1티어당" : "1승당",
+        rows: published.filter((item) => item.group_key === id).map((item) => [item.title, item.amount] as const),
+      }));
 
   return (
-    <div className={`game-page ${game.color}`}>
-      <section className="game-detail">
-        <div className="detail-art" aria-hidden="true">
-          {artwork
-            ? <Image src={artwork} alt="" fill sizes="(max-width: 640px) 100vw, 62vw" loading="eager" />
-            : <span>{game.mark}</span>}
-        </div>
-        <div className="shell detail-content">
-          <Link className="back-link" href="/#games">← 게임 선택</Link>
-          <p className="eyebrow"><span /> {game.genre}</p>
-          <h1>{game.name}</h1>
-          <p className="hero-description">{game.intro}</p>
-          <div className="detail-actions">
-            <a className="nav-button" href="#services">서비스 가격표 보기</a>
-          </div>
-        </div>
-      </section>
-      <section className="shell service-section" id="services" aria-labelledby="services-title">
-        <h2 id="services-title">서비스 가격표</h2>
-        <p className="section-copy">표시된 금액은 확정 전 참고 가격입니다.</p>
-        {products?.length === 0 && <p className="section-copy">현재 표시할 등록 상품이 없습니다.</p>}
-        <div className="grid gap-4 md:grid-cols-2">
-          {products?.map((service) => (
-            <article className="service-card" key={service.id}>
-              
-              <h3>{service.name}</h3>
-              <p className="section-copy">{service.description}</p>
-              <p className="service-price"><span>{connected ? "참고 기본 가격" : "테스트 기본 가격"}</span> {money(service.base_price)}</p>
-            </article>
-          ))}
-        </div>
-        {products === null && <p className="section-copy">상품을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</p>}
-        <InquiryForm connected={connected} submitInquiry={submitInquiry} />
-      </section>
-    </div>
+    <section className="shell service-section max-w-4xl" id="services">
+      <h1>{isValorant ? "발로란트" : "오버워치"} 가격표</h1>
+      <PriceTabs
+        tables={prices}
+        game={game.label}
+        inquiryLabel={isValorant ? "가격 문의" : "상담문의"}
+      />
+      <div className="mt-6 flex justify-center">
+        <Link href="/contact" className="game-button">문의하기</Link>
+      </div>
+      <InquiryForm connected={connected} submitInquiry={submitInquiry} />
+    </section>
   );
 }
-
-
-
-
-
-
-

@@ -9,8 +9,8 @@ export function InquiryForm({ connected, submitInquiry }: {
   const [message, submit, pending] = useActionState(submitInquiry, "");
 
   return (
-    <details className="mt-6" id="consultation">
-      <summary className="game-button">문의하기</summary>
+    <section className="mt-6 hidden target:block" id="consultation" aria-labelledby="consultation-title">
+      <h2 id="consultation-title">상담 접수</h2>
       {connected ? (
         <form className="consult-fields mt-4 max-w-xl" action={submit}>
           <label>답변 받을 이메일 또는 전화번호<input name="contact" maxLength={120} required /></label>
@@ -19,6 +19,6 @@ export function InquiryForm({ connected, submitInquiry }: {
           {message && <p role="status">{message}</p>}
         </form>
       ) : <p className="section-copy">문의 접수는 상담 연결 설정 후 가능합니다.</p>}
-    </details>
+    </section>
   );
 }

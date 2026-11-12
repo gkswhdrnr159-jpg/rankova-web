@@ -33,20 +33,21 @@ export async function logout() {
 }
 
 export async function updateStatus(form: FormData) {
-  await requireAdmin();
+  const auth = await requireAdmin();
   const kind = read(form, "kind");
   const id = read(form, "id");
   const status = read(form, "status");
   if (kind === "order" && /^RV-[A-F0-9]{20}$/.test(id) && orderStatuses.some((entry) => entry === status)) {
-    await table("rankova_orders", { number: "eq." + id }, { method: "PATCH", body: JSON.stringify({ status }) });
+    await table("rankova_orders", { number: "eq." + id }, { method: "PATCH", body: JSON.stringify({ status }) }, auth);
   } else if (kind === "inquiry" && /^[a-f0-9-]{36}$/.test(id) && inquiryStatuses.some((entry) => entry === status)) {
-    await table("rankova_inquiries", { id: "eq." + id }, { method: "PATCH", body: JSON.stringify({ status }) });
+    await table("rankova_inquiries", { id: "eq." + id }, { method: "PATCH", body: JSON.stringify({ status }) }, auth);
   }
   revalidatePath("/admin");
+  revalidatePath("/admin/legacy");
 }
 
 export async function saveProduct(form: FormData) {
-  await requireAdmin();
+  const auth = await requireAdmin();
   const id = read(form, "id");
   const game = read(form, "game");
   const name = read(form, "name");
@@ -58,11 +59,11 @@ export async function saveProduct(form: FormData) {
   const active = form.get("active") === "on";
   const values = { name, description, base_price: Number(base), tier_step: Number(step), active };
   if (form.get("existing") === "yes") {
-    await table("rankova_products", { id: "eq." + id, game: "eq." + game }, { method: "PATCH", body: JSON.stringify(values) });
+    await table("rankova_products", { id: "eq." + id, game: "eq." + game }, { method: "PATCH", body: JSON.stringify(values) }, auth);
   } else {
-    await table("rankova_products", {}, { method: "POST", body: JSON.stringify({ id, game, ...values }) });
+    await table("rankova_products", {}, { method: "POST", body: JSON.stringify({ id, game, ...values }) }, auth);
   }
   revalidatePath("/admin");
+  revalidatePath("/admin/legacy");
   revalidatePath("/games/" + game);
 }
-

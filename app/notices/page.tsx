@@ -1,4 +1,18 @@
-export default function Notices() {
+import { publishedContent } from "../cms";
+import { assetUrl } from "../cms-model";
+
+export default async function Notices() {
+  const notices = await publishedContent("notice");
+  if (notices !== null) return (
+    <section className="shell service-section space-y-6">
+      {!notices.length && <><h1>공지사항</h1><p className="section-copy">공개된 공지사항이 없습니다.</p></>}
+      {notices.map((notice) => <article key={notice.id} className="service-card notice-document">
+        <h2>{notice.title}</h2>
+        {notice.image_id && <img src={assetUrl(notice.image_id)} alt={notice.image_alt} />}
+        <p className="whitespace-pre-wrap">{notice.body}</p>
+      </article>)}
+    </section>
+  );
   return (
     <section className="shell service-section">
       <article className="service-card notice-document">
